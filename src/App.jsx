@@ -29,20 +29,18 @@ function App() {
     fetch('/votos_eleicoes.json')
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Não foi possível carregar o arquivo JSON.');
+          throw new Error('Não foi possível carregar os dados.');
         }
 
         return response.json();
       })
       .then((json) => {
-        const normalizedData = json.data ?? json;
-
-        setData(normalizedData);
+        setData(json.data ?? json);
         setLoading(false);
       })
-      .catch((error) => {
-        console.error(error);
-        setError(error.message);
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
         setLoading(false);
       });
   }, []);
@@ -56,35 +54,27 @@ function App() {
   const isAll = cidade === ALL_CITIES;
 
   const dadosCidade = !isAll ? data[cidade] : null;
-
   const dadosCargo = dadosCidade?.[cargo];
 
-  const candidatos =
-    !isAll
-      ? dadosCidade?.votos?.[CARGO_SLUGS[cargo]] || []
-      : [];
+  const candidatos = dadosCidade?.votos?.[CARGO_SLUGS[cargo]] || [];
 
   const totalVotos = candidatos.reduce(
-    (total, candidato) => total + Number(candidato.qtdVotos || 0),
+    (total, candidato) =>
+      total + Number(candidato.qtdVotos || 0),
     0
   );
 
   const dadosTodosEstado = useMemo(() => {
-    if (!isAll) {
-      return {
-        brancos: 0,
-        nulos: 0,
-      };
-    }
-
     return cidades.reduce(
       (totais, nomeCidade) => {
         const cidadeData = data[nomeCidade];
         const cargoData = cidadeData?.[cargo];
 
         return {
-          brancos: totais.brancos + Number(cargoData?.brancos || 0),
-          nulos: totais.nulos + Number(cargoData?.nulos || 0),
+          brancos:
+            totais.brancos + Number(cargoData?.brancos || 0),
+          nulos:
+            totais.nulos + Number(cargoData?.nulos || 0),
         };
       },
       {
@@ -92,14 +82,14 @@ function App() {
         nulos: 0,
       }
     );
-  }, [data, cidades, cargo, isAll]);
+  }, [data, cidades, cargo]);
 
   if (loading) {
     return (
       <main className="app">
         <div className="container">
-          <div className="empty-state">
-            <p>Carregando dados...</p>
+          <div className="loading">
+            <span>Carregando dados...</span>
           </div>
         </div>
       </main>
@@ -110,8 +100,8 @@ function App() {
     return (
       <main className="app">
         <div className="container">
-          <div className="empty-state">
-            <h2>Erro ao carregar os dados</h2>
+          <div className="error">
+            <h2>Não foi possível carregar os dados</h2>
             <p>{error}</p>
           </div>
         </div>
@@ -122,9 +112,9 @@ function App() {
   return (
     <main className="app">
       <div className="container">
-        <header className="header">
+        <header className="hero">
 
-          <h1>Votos por cidade</h1>
+          <h1>Como o Rio Grande do Sul votou?</h1>
 
         </header>
 
@@ -133,16 +123,20 @@ function App() {
             <span>Cidade</span>
 
             <select
-              id={cidade}
               value={cidade}
-              onChange={(event) => setCidade(event.target.value)}
+              onChange={(event) =>
+                setCidade(event.target.value)
+              }
             >
               <option value={ALL_CITIES}>
                 Todo o Rio Grande do Sul
               </option>
 
               {cidades.map((nomeCidade) => (
-                <option key={nomeCidade} value={nomeCidade}>
+                <option
+                  key={nomeCidade}
+                  value={nomeCidade}
+                >
                   {nomeCidade}
                 </option>
               ))}
@@ -154,10 +148,15 @@ function App() {
 
             <select
               value={cargo}
-              onChange={(event) => setCargo(event.target.value)}
+              onChange={(event) =>
+                setCargo(event.target.value)
+              }
             >
               {CARGOS.map((item) => (
-                <option key={item.value} value={item.value}>
+                <option
+                  key={item.value}
+                  value={item.value}
+                >
                   {item.label}
                 </option>
               ))}
@@ -167,149 +166,167 @@ function App() {
 
         <section className="results">
           <div className="results-header">
-            <div>
               <h2>
-                {isAll ? 'Rio Grande do Sul' : cidade}
+                {isAll ? 'Votos nulos/brancos em todo o estado' : `Votos nulos/brancos em ${cidade}`}
               </h2>
-            </div>
 
             <span className="cargo-badge">
               {cargo}
             </span>
           </div>
 
-          <div className="summary-grid">
-            <article className="summary-card">
-              <span>Votos brancos</span>
+          {isAll ? (
+            <>
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <span>Votos brancos no RS</span>
 
-              <strong>
-                {formatNumber(
-                  isAll
-                    ? dadosTodosEstado.brancos
-                    : dadosCargo?.brancos
-                )}
-              </strong>
-            </article>
+                  <strong>
+                    {formatNumber(
+                      dadosTodosEstado.brancos
+                    )}
+                  </strong>
+                </article>
 
-            <article className="summary-card">
-              <span>Votos nulos</span>
+                <article className="summary-card">
+                  <span>Votos nulos no RS</span>
 
-              <strong>
-                {formatNumber(
-                  isAll
-                    ? dadosTodosEstado.nulos
-                    : dadosCargo?.nulos
-                )}
-              </strong>
-            </article>
+                  <strong>
+                    {formatNumber(
+                      dadosTodosEstado.nulos
+                    )}
+                  </strong>
+                </article>
 
-            {!isAll && (
-              <article className="summary-card">
-                <span>Votos em candidatos</span>
+                <article className="summary-card summary-card-total">
+                  <span>Brancos + nulos</span>
 
-                <strong>
-                  {formatNumber(totalVotos)}
-                </strong>
-              </article>
-            )}
+                  <strong>
+                    {formatNumber(
+                      dadosTodosEstado.brancos +
+                        dadosTodosEstado.nulos
+                    )}
+                  </strong>
+                </article>
+              </div>
+              
+            </>
+          ) : (
+            <>
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <span>Votos brancos</span>
 
-            {isAll && (
-              <article className="summary-card">
-                <span>Municípios</span>
+                  <strong>
+                    {formatNumber(
+                      dadosCargo?.brancos
+                    )}
+                  </strong>
+                </article>
 
-                <strong>
-                  {formatNumber(cidades.length)}
-                </strong>
-              </article>
-            )}
-          </div>
+                <article className="summary-card">
+                  <span>Votos nulos</span>
 
-          {!isAll && (
-            <div className="candidates">
-              <div className="section-heading">
-                <h3>Candidatos</h3>
+                  <strong>
+                    {formatNumber(
+                      dadosCargo?.nulos
+                    )}
+                  </strong>
+                </article>
 
-                <span>
-                  {candidatos.length}{' '}
-                  {candidatos.length === 1
-                    ? 'candidato'
-                    : 'candidatos'}
-                </span>
+                <article className="summary-card">
+                  <span>Votos em candidatos</span>
+
+                  <strong>
+                    {formatNumber(totalVotos)}
+                  </strong>
+                </article>
               </div>
 
-              {candidatos.length === 0 ? (
-                <div className="empty-state">
-                  <p>
-                    Não há votos nominais para este cargo.
-                  </p>
+              <div className="candidates">
+                <div className="section-heading">
+                    <h3>Candidatos</h3>
+                  <span>
+                    {candidatos.length}{' '}
+                    {candidatos.length === 1
+                      ? 'candidato'
+                      : 'candidatos'}
+                  </span>
                 </div>
-              ) : (
-                <div className="candidate-list">
-                  {candidatos.map((candidato, index) => {
-                    const votos = Number(
-                      candidato.qtdVotos || 0
-                    );
 
-                    const percentual =
-                      totalVotos > 0
-                        ? (votos / totalVotos) * 100
-                        : 0;
+                {candidatos.length === 0 ? (
+                  <div className="empty-state">
+                    <p>
+                      Não há votos nominais para este cargo.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="candidate-list">
+                    {candidatos.map(
+                      (candidato, index) => {
+                        const votos = Number(
+                          candidato.qtdVotos || 0
+                        );
 
-                    return (
-                      <article
-                        className="candidate"
-                        key={`${candidato.nome}-${candidato.partido}-${index}`}
-                      >
-                        <div className="candidate-top">
-                          <div className="candidate-info">
-                            <span className="position">
-                              #{index + 1}
-                            </span>
+                        const percentual =
+                          totalVotos > 0
+                            ? (votos / totalVotos) * 100
+                            : 0;
 
-                            <div>
-                              <h4>{candidato.nome}</h4>
+                        return (
+                          <article
+                            className="candidate"
+                            key={`${candidato.nome}-${candidato.partido}-${index}`}
+                          >
+                            <div className="candidate-top">
+                              <div className="candidate-info">
+                                <span className="position">
+                                  {String(index + 1).padStart(
+                                    2,
+                                    '0'
+                                  )}
+                                </span>
 
-                              <span>
-                                {candidato.partido ||
-                                  'Sem partido'}
-                              </span>
+                                <div>
+                                  <h4>
+                                    {candidato.nome}
+                                  </h4>
+
+                                  <span>
+                                    {candidato.partido ||
+                                      'Sem partido'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <strong>
+                                {formatNumber(votos)}
+                              </strong>
                             </div>
-                          </div>
 
-                          <strong>
-                            {formatNumber(votos)}
-                          </strong>
-                        </div>
+                            <div className="bar">
+                              <div
+                                className="bar-fill"
+                                style={{
+                                  width: `${percentual}%`,
+                                }}
+                              />
+                            </div>
 
-                        <div className="bar">
-                          <div
-                            className="bar-fill"
-                            style={{
-                              width: `${percentual}%`,
-                            }}
-                          />
-                        </div>
-
-                        <span className="percentage">
-                          {percentual.toFixed(1)}%
-                        </span>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {isAll && (
-            <div className="empty-state">
-              <p>
-                Selecione uma cidade para visualizar a votação
-                de cada candidato.
-              </p>
-            </div>
+                            <span className="percentage">
+                              {percentual.toFixed(1)}%
+                            </span>
+                          </article>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </section>
+
       </div>
     </main>
   );
