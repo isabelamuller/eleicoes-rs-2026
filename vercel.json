@@ -12,6 +12,9 @@
   "functions": {
     "api/data.js": {
       "includeFiles": "private-data/votos_eleicoes.json"
+    },
+    "api/porto-alegre-map.js": {
+      "includeFiles": "private-data/porto_alegre_votos.json"
     }
   }
 }
