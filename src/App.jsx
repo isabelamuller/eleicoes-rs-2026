@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 const CARGOS = [
   { label: 'Deputado Estadual', value: 'Deputado Estadual' },
@@ -454,6 +455,7 @@ function App() {
         </section>
 
       </div>
+      <Analytics />
     </main>
   );
 }
