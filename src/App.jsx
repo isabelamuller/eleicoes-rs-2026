@@ -178,7 +178,6 @@ function App() {
           className="access-dialog"
           role="dialog"
         >
-          <span className="access-eyebrow">Eleições 2026</span>
           <h1 id="access-title">Acesso restrito</h1>
           <p>Digite a senha para entrar no site.</p>
 
