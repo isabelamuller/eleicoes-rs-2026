@@ -18,7 +18,37 @@ const CARGO_SLUGS = {
 
 const ALL_CITIES = '__ALL__';
 
+async function readApiJson(response, route) {
+  const contentType = response.headers.get('content-type') || '';
+
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `${route} não respondeu como API (HTTP ${response.status}). Para testar localmente, use "npx vercel dev"; no site publicado, confirme que as funções foram incluídas no deploy.`,
+    );
+  }
+
+  let result;
+
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error(`${route} retornou uma resposta inválida (HTTP ${response.status}).`);
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      result.error || `Falha na API ${route} (HTTP ${response.status}).`,
+    );
+  }
+
+  return result;
+}
+
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [data, setData] = useState({});
   const [cidade, setCidade] = useState(ALL_CITIES);
   const [cargo, setCargo] = useState('Deputado Estadual');
@@ -26,15 +56,36 @@ function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/votos_eleicoes.json')
+    fetch('/api/session')
+      .then((response) => readApiJson(response, '/api/session'))
+      .then((session) => setIsAuthenticated(session.authenticated))
+      .catch((err) => {
+        console.error(err);
+        setLoginError('Não foi possível verificar o acesso. Tente novamente.');
+        setIsAuthenticated(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    fetch('/api/data')
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Não foi possível carregar os dados.');
+        if (response.status === 401) {
+          setLoginError('Sua sessão expirou. Entre novamente.');
+          setIsAuthenticated(false);
+          return null;
         }
 
-        return response.json();
+        return readApiJson(response, '/api/data');
       })
       .then((json) => {
+        if (!json) {
+          return;
+        }
+
         setData(json.data ?? json);
         setLoading(false);
       })
@@ -43,7 +94,30 @@ function App() {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [isAuthenticated]);
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    setLoginError('');
+    setIsLoggingIn(true);
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+
+      await readApiJson(response, '/api/login');
+      setPassword('');
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error(err);
+      setLoginError(err.message);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  }
 
   const cidades = useMemo(() => {
     return Object.keys(data)
@@ -83,6 +157,58 @@ function App() {
       }
     );
   }, [data, cidades, cargo]);
+
+  if (!isAuthenticated) {
+    if (isAuthenticated === null) {
+      return (
+        <main className="access-screen">
+          <p aria-live="polite" className="access-loading" role="status">
+            Verificando acesso...
+          </p>
+        </main>
+      );
+    }
+
+    return (
+      <main className="access-screen">
+        <section
+          aria-labelledby="access-title"
+          aria-modal="true"
+          className="access-dialog"
+          role="dialog"
+        >
+          <span className="access-eyebrow">Eleições 2026</span>
+          <h1 id="access-title">Acesso restrito</h1>
+          <p>Digite a senha para entrar no site.</p>
+
+          <form className="access-form" onSubmit={handleLogin}>
+            <label htmlFor="access-password">Senha</label>
+            <input
+              autoComplete="current-password"
+              autoFocus
+              id="access-password"
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setLoginError('');
+              }}
+              disabled={isLoggingIn}
+              required
+              type="password"
+              value={password}
+            />
+            {loginError && (
+              <p aria-live="polite" className="access-error" role="alert">
+                {loginError}
+              </p>
+            )}
+            <button disabled={isLoggingIn} type="submit">
+              {isLoggingIn ? 'Verificando...' : 'Entrar'}
+            </button>
+          </form>
+        </section>
+      </main>
+    );
+  }
 
   if (loading) {
     return (
