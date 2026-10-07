@@ -1,4 +1,5 @@
 import AreaSwitch from '../AreaSwitch.jsx';
+import SiteFooter from '../SiteFooter.jsx';
 import './Documentacao.css';
 
 const SOURCES = [
@@ -308,6 +309,8 @@ Gerando porto_alegre_votos.json
             </p>
           </div>
         </section>
+
+        <SiteFooter />
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import AreaSwitch from './AreaSwitch.jsx';
+import SiteFooter from './SiteFooter.jsx';
 import { Analytics } from '@vercel/analytics/react';
 
 const CARGOS = [
@@ -145,17 +146,26 @@ function App() {
       (totais, nomeCidade) => {
         const cidadeData = data[nomeCidade];
         const cargoData = cidadeData?.[cargo];
+        const candidateVotes = (
+          cidadeData?.votos?.[CARGO_SLUGS[cargo]] || []
+        ).reduce(
+          (total, candidato) =>
+            total + Number(candidato.qtdVotos || 0),
+          0
+        );
 
         return {
           brancos:
             totais.brancos + Number(cargoData?.brancos || 0),
           nulos:
             totais.nulos + Number(cargoData?.nulos || 0),
+          validos: totais.validos + candidateVotes,
         };
       },
       {
         brancos: 0,
         nulos: 0,
+        validos: 0,
       }
     );
   }, [data, cidades, cargo]);
@@ -242,7 +252,9 @@ function App() {
         <AreaSwitch active="rs" />
         <header className="hero">
 
-          <h1>Como o Rio Grande do Sul votou?</h1>
+          <h1>
+            Como o <span className="rs-title-accent">Rio Grande do Sul</span> votou?
+          </h1>
 
         </header>
 
@@ -294,13 +306,10 @@ function App() {
 
         <section className="results">
           <div className="results-header">
-              <h2>
-                {isAll ? 'Votos nulos/brancos em todo o estado' : `Votos nulos/brancos em ${cidade}`}
-              </h2>
-
-            <span className="cargo-badge">
-              {cargo}
-            </span>
+            <h2>
+              Resumo de votos para <strong>{cargo}</strong> em{' '}
+              <strong>{isAll ? 'Rio Grande do Sul' : cidade}</strong>
+            </h2>
           </div>
 
           {isAll ? (
@@ -326,13 +335,12 @@ function App() {
                   </strong>
                 </article>
 
-                <article className="summary-card summary-card-total">
-                  <span>Brancos + nulos</span>
+                <article className="summary-card">
+                  <span>Votos válidos no RS</span>
 
                   <strong>
                     {formatNumber(
-                      dadosTodosEstado.brancos +
-                        dadosTodosEstado.nulos
+                      dadosTodosEstado.validos
                     )}
                   </strong>
                 </article>
@@ -455,6 +463,7 @@ function App() {
           )}
         </section>
 
+        <SiteFooter />
       </div>
       <Analytics />
     </main>

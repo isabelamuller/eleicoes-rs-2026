@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import AreaSwitch from '../AreaSwitch.jsx';
+import SiteFooter from '../SiteFooter.jsx';
 
 import './MapaPortoAlegre.css';
 
@@ -362,6 +363,7 @@ const MapNeighborhood = memo(
         onMouseEnter={() =>
           onHover(name, values)
         }
+        onClick={() => onHover(name, values)}
       />
     );
   },
@@ -598,16 +600,9 @@ function App() {
 
         <header className="map-header">
           <div>
-            <p className="eyebrow">
-              Porto Alegre · Eleições 2026
-            </p>
-
-            <h1>Como Porto Alegre votou?</h1>
-
-            <p>
-              Passe o mouse pelos bairros para
-              ver os votos brancos e nulos.
-            </p>
+            <h1>
+              Como <span className="rs-title-accent">Porto Alegre</span> votou?
+            </h1>
           </div>
 
           <label className="map-select">
@@ -633,113 +628,6 @@ function App() {
         </header>
 
         <section className="map-wrapper">
-          <div className="map-title">
-            <div>
-              <p className="eyebrow">Resultado</p>
-
-              <h2>Porto Alegre</h2>
-            </div>
-
-            {hoveredBairro && (
-              <div className="map-tooltip">
-                <strong>
-                  {hoveredBairro.name}
-                </strong>
-
-                <span className="map-tooltip-cargo">
-                  {cargoLabel}
-                </span>
-
-                <div>
-                  <span>Brancos</span>
-
-                  <strong>
-                    {formatNumber(
-                      hoveredBairro.brancos,
-                    )}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Nulos</span>
-
-                  <strong>
-                    {formatNumber(
-                      hoveredBairro.nulos,
-                    )}
-                  </strong>
-                </div>
-
-                <section
-                  aria-label={`Três candidatos mais votados para ${cargoLabel}`}
-                  className="map-tooltip-highlights"
-                >
-                  <span className="map-tooltip-office">
-                    3 mais votados
-                  </span>
-
-                  {hoveredCandidates.map(
-                    (candidate, index) => (
-                      <div
-                        className="map-tooltip-candidate"
-                        key={`${candidate.nome}-${index}`}
-                      >
-                        <span className="map-tooltip-rank">
-                          {index + 1}º
-                        </span>
-
-                        <strong>
-                          {candidate.nome}
-                        </strong>
-
-                        <span className="map-tooltip-party">
-                          {candidate.partido ||
-                            'Sem partido'}
-                        </span>
-
-                        <span className="map-tooltip-votes">
-                          {formatNumber(
-                            candidate.qtdVotos,
-                          )}{' '}
-                          votos
-                        </span>
-                      </div>
-                    ),
-                  )}
-                </section>
-              </div>
-            )}
-          </div>
-
-          <div className="map-summary">
-            <div>
-              <span>Votos brancos</span>
-
-              <strong>
-                {formatNumber(totals.brancos)}
-              </strong>
-            </div>
-
-            <div>
-              <span>Votos nulos</span>
-
-              <strong>
-                {formatNumber(totals.nulos)}
-              </strong>
-            </div>
-
-            <div>
-              <span>Brancos + nulos</span>
-
-              <strong>
-                {formatNumber(
-                  totals.brancos +
-                    totals.nulos,
-                )}
-              </strong>
-            </div>
-          </div>
-
           <div className="svg-map">
             <svg
               viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -764,7 +652,58 @@ function App() {
               )}
             </svg>
           </div>
+          {hoveredBairro && (
+              <div className="map-tooltip">
+                <strong>{hoveredBairro.name}</strong>
+
+                <span className="map-tooltip-cargo">
+                  {cargoLabel}
+                </span>
+
+                <div>
+                  <span>Brancos</span>
+                  <strong>
+                    {formatNumber(hoveredBairro.brancos)}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Nulos</span>
+                  <strong>
+                    {formatNumber(hoveredBairro.nulos)}
+                  </strong>
+                </div>
+
+                <section
+                  aria-label={`Três candidatos mais votados para ${cargoLabel}`}
+                  className="map-tooltip-highlights"
+                >
+                  <span className="map-tooltip-office">
+                    3 mais votados
+                  </span>
+
+                  {hoveredCandidates.map((candidate, index) => (
+                    <div
+                      className="map-tooltip-candidate"
+                      key={`${candidate.nome}-${index}`}
+                    >
+                      <span className="map-tooltip-rank">
+                        {index + 1}º
+                      </span>
+                      <strong>{candidate.nome}</strong>
+                      <span className="map-tooltip-party">
+                        {candidate.partido || 'Sem partido'}
+                      </span>
+                      <span className="map-tooltip-votes">
+                        {formatNumber(candidate.qtdVotos)} votos
+                      </span>
+                    </div>
+                  ))}
+                </section>
+              </div>
+          )}
         </section>
+        <SiteFooter />
       </div>
     </main>
   );
