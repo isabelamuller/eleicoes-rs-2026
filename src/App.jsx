@@ -35,12 +35,6 @@ function App() {
         return response.json();
       })
       .then((json) => {
-        // Suporta tanto:
-        // { "CAXIAS DO SUL": {...} }
-        //
-        // quanto:
-        // { "data": { "CAXIAS DO SUL": {...} } }
-
         const normalizedData = json.data ?? json;
 
         setData(normalizedData);
@@ -139,6 +133,7 @@ function App() {
             <span>Cidade</span>
 
             <select
+              id={cidade}
               value={cidade}
               onChange={(event) => setCidade(event.target.value)}
             >
@@ -173,10 +168,6 @@ function App() {
         <section className="results">
           <div className="results-header">
             <div>
-              <p className="eyebrow">
-                {isAll ? 'Resultado estadual' : 'Resultado'}
-              </p>
-
               <h2>
                 {isAll ? 'Rio Grande do Sul' : cidade}
               </h2>
