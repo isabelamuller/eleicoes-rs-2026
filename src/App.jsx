@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import AreaSwitch from './AreaSwitch.jsx';
 import { Analytics } from '@vercel/analytics/react';
 
 const CARGOS = [
@@ -238,6 +239,7 @@ function App() {
   return (
     <main className="app">
       <div className="container">
+        <AreaSwitch active="rs" />
         <header className="hero">
 
           <h1>Como o Rio Grande do Sul votou?</h1>
