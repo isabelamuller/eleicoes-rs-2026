@@ -1,4 +1,14 @@
 {
+  "rewrites": [
+    {
+      "source": "/mapa-porto-alegre",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/documentacao",
+      "destination": "/index.html"
+    }
+  ],
   "functions": {
     "api/data.js": {
       "includeFiles": "private-data/votos_eleicoes.json"
