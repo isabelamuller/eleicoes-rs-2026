@@ -19,6 +19,47 @@ const CARGO_SLUGS = {
   Presidente: 'presidente',
 };
 
+const CANDIDATE_PHOTOS = {
+  governador: {
+    'GABRIEL SOUZA': '/gov/gabriel.jpg',
+    'JULIANA BRIZOLA': '/gov/juliana.jpg',
+    'MARCELO MARANATA': '/gov/maranata.jpg',
+    'PRISCILA VOIGT': '/gov/priscila.jpg',
+    'REJANE DE OLIVEIRA': '/gov/rejane.jpg',
+    ZUCCO: '/gov/zucco.jpg',
+  },
+  senador: {
+    'DANIELA MULHERES SOCIALISTAS': '/senador/daniela.jpg',
+    'FREDERICO ANTUNES': '/senador/frederico.jpg',
+    'LUCIANO DO MLB': '/senador/luciano.jpg',
+    'MANUELA D AVILA': '/senador/manuela.jpg',
+    'MARCEL VAN HATTEM': '/senador/marcel.jpg',
+    'MILTON CARDOSO': '/senador/milton.jpg',
+    PIMENTA: '/senador/pimenta.jpg',
+    'REGIS ETHUR': '/senador/regis.jpg',
+    'RENATO JAGUARAO': '/senador/renato.jpg',
+    RIGOTTO: '/senador/rigotto.jpg',
+    'RIC JONES': '/senador/ric.webp',
+    SANDERSON: '/senador/sanderson.jpg',
+    'TANIA PERES': '/senador/tania.jpg',
+  },
+  presidente: {
+    'CLARIANA BARAO': '/presidente/CLARIANA.jpg',
+    'EDMILSON COSTA': '/presidente/EDMILSON.jpg',
+    'ESCRITOR AUGUSTO CURY': '/presidente/cury.jpg',
+    'FLAVIO BOLSONARO': '/presidente/flavio.jpg',
+    'HERTZ DIAS': '/presidente/HERTZ.jpg',
+    'LEONARDO AVALANCHE': '/presidente/leonardo.jpg',
+    LULA: '/presidente/lula.jpg',
+    'RENAN SANTOS': '/presidente/renan.jpg',
+    'RONALDO CAIADO': '/presidente/caiado.jpg',
+    'RUI COSTA PIMENTA': '/presidente/RUI.jpg',
+    SAMARA: '/presidente/samara.jpg',
+    'VETERINARIO WILSON GRASSI': '/presidente/WILSON.jpg',
+    ZEMA: '/presidente/zema.jpg',
+  },
+};
+
 const ALL_CITIES = '__ALL__';
 
 async function readApiJson(response, route) {
@@ -134,6 +175,16 @@ function App() {
   const dadosCargo = dadosCidade?.[cargo];
 
   const candidatos = dadosCidade?.votos?.[CARGO_SLUGS[cargo]] || [];
+
+  function getCandidatePhoto(candidateName) {
+    const normalizedName = candidateName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Z0-9]+/g, ' ')
+      .trim();
+
+    return CANDIDATE_PHOTOS[CARGO_SLUGS[cargo]]?.[normalizedName];
+  }
 
   const totalVotos = candidatos.reduce(
     (total, candidato) =>
@@ -408,6 +459,7 @@ function App() {
                           totalVotos > 0
                             ? (votos / totalVotos) * 100
                             : 0;
+                        const foto = getCandidatePhoto(candidato.nome);
 
                         return (
                           <article
@@ -422,6 +474,14 @@ function App() {
                                     '0'
                                   )}
                                 </span>
+
+                                {foto && (
+                                  <img
+                                    alt={`Foto de ${candidato.nome}`}
+                                    className="candidate-photo"
+                                    src={foto}
+                                  />
+                                )}
 
                                 <div>
                                   <h4>
